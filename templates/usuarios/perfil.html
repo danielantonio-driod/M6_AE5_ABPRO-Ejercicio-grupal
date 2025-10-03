@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-circle text-primary" style="font-size: 4rem;"></i>
+                    <h4 class="mt-2">{{ usuario.username }}</h4>
+                    {% if usuario.email %}
+                        <p class="text-muted">{{ usuario.email }}</p>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <strong><i class="fas fa-calendar me-2"></i>Miembro desde:</strong><br>
+                    <small class="text-muted">{{ usuario.date_joined|date:"d/m/Y" }}</small>
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="fas fa-clock me-2"></i>Último acceso:</strong><br>
+                    <small class="text-muted">
+                        {% if usuario.last_login %}
+                            {{ usuario.last_login|date:"d/m/Y H:i" }}
+                        {% else %}
+                            Nunca
+                        {% endif %}
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    <strong><i class="fas fa-users me-2"></i>Tipo de Usuario:</strong><br>
+                    {% if grupos %}
+                        {% for grupo in grupos %}
+                            <span class="badge bg-{% if grupo.name == 'Administradores' %}danger{% elif grupo.name == 'Organizadores' %}warning{% else %}info{% endif %} me-1">
+                                {% if grupo.name == 'Administradores' %}
+                                    <i class="fas fa-crown me-1"></i>
+                                {% elif grupo.name == 'Organizadores' %}
+                                    <i class="fas fa-user-tie me-1"></i>
+                                {% else %}
+                                    <i class="fas fa-users me-1"></i>
+                                {% endif %}
+                                {{ grupo.name }}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="badge bg-secondary">Sin grupo</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="row">
+            <!-- Estadísticas de eventos -->
+            <div class="col-md-4 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-plus" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">{{ eventos_organizados }}</h4>
+                        <p class="mb-0">Eventos Organizados</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-check" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">{{ eventos_activos }}</h4>
+                        <p class="mb-0">Eventos Activos</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-ticket-alt" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">{{ eventos_registrado }}</h4>
+                        <p class="mb-0">Eventos Registrado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acciones rápidas -->
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if perms.eventos.add_evento %}
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'eventos:crear' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Crear Nuevo Evento
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'eventos:mis_eventos' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-list me-2"></i>
+                                Ver Mis Eventos
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'eventos:lista' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Explorar Eventos
+                        </a>
+                    </div>
+                    
+                    {% if usuario.is_staff %}
+                        <div class="col-md-6 mb-3">
+                            <a href="/admin/" target="_blank" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-cogs me-2"></i>
+                                Panel Admin
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información de permisos -->
+        {% if grupos %}
+        <div class="card shadow mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Permisos de tu Cuenta
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for grupo in grupos %}
+                        {% if grupo.name == 'Administradores' %}
+                            <div class="col-12">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-crown me-2"></i>
+                                    <strong>Administrador:</strong> Tienes acceso completo a todas las funciones del sistema.
+                                </div>
+                            </div>
+                        {% elif grupo.name == 'Organizadores' %}
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-user-tie me-2"></i>
+                                    <strong>Organizador:</strong> Puedes crear, editar y gestionar eventos, pero no eliminarlos.
+                                </div>
+                            </div>
+                        {% elif grupo.name == 'Asistentes' %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-users me-2"></i>
+                                    <strong>Asistente:</strong> Puedes ver eventos públicos y registrarte en ellos.
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

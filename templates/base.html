@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Plataforma de Gestión de Eventos{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+        .card-event {
+            transition: transform 0.2s;
+        }
+        .card-event:hover {
+            transform: translateY(-5px);
+        }
+        .badge-estado {
+            font-size: 0.8em;
+        }
+        .event-image {
+            height: 200px;
+            object-fit: cover;
+        }
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'eventos:lista' %}">
+                <i class="fas fa-calendar-alt me-2"></i>
+                Gestión de Eventos
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'eventos:lista' %}">
+                            <i class="fas fa-list me-1"></i>Eventos
+                        </a>
+                    </li>
+                    
+                    {% if user.is_authenticated and perms.eventos.add_evento %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'eventos:crear' %}">
+                            <i class="fas fa-plus me-1"></i>Crear Evento
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'eventos:mis_eventos' %}">
+                            <i class="fas fa-user-cog me-1"></i>Mis Eventos
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>{{ user.username }}
+                                {% if user.groups.all %}
+                                    <span class="badge bg-light text-dark ms-1">
+                                        {{ user.groups.first.name }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}">
+                                    <i class="fas fa-user me-2"></i>Mi Perfil
+                                </a></li>
+                                {% if user.is_staff %}
+                                <li><a class="dropdown-item" href="/admin/" target="_blank">
+                                    <i class="fas fa-cogs me-2"></i>Admin Panel
+                                </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'usuarios:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'usuarios:login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'usuarios:registro' %}">
+                                <i class="fas fa-user-plus me-1"></i>Registrarse
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Contenido principal -->
+    <main class="container-fluid">
+        <div class="row">
+            <!-- Sidebar opcional -->
+            {% block sidebar %}{% endblock %}
+            
+            <!-- Contenido principal -->
+            <div class="{% if 'sidebar' in request.resolver_match.view_name %}col-md-9{% else %}col-12{% endif %}">
+                <div class="container py-4">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Plataforma de Gestión de Eventos</h5>
+                    <p class="text-muted">Sistema completo para organizar y gestionar eventos de todo tipo.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Tipos de Usuario</h6>
+                    <ul class="list-unstyled text-muted">
+                        <li><i class="fas fa-crown me-2"></i>Administradores - Control total</li>
+                        <li><i class="fas fa-user-tie me-2"></i>Organizadores - Crear y gestionar eventos</li>
+                        <li><i class="fas fa-users me-2"></i>Asistentes - Participar en eventos</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <small class="text-muted">
+                        © 2025 Plataforma de Gestión de Eventos - Desarrollado con Django
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
